@@ -461,24 +461,10 @@
   WINDOWS_SYSMON:
     api: unstructuredlogentries
     timestamps:
-      - name: UtcTimeQuotes
+      - name: UtcTime
         base_time: true
         dateformat: "%Y-%m-%d %H:%M:%S"
-        pattern: '("UtcTime"\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
-        epoch: false
-        group: 2
-        examples:
-          - '"UtcTime":"1970-01-01 00:00:00'
-          - '"UtcTime" :"1970-01-01 00:00:00'
-          - '"UtcTime": "1970-01-01 00:00:00'
-          - '"UtcTime" : "1970-01-01 00:00:00'
-          - '"UtcTime":1970-01-01 00:00:00'
-          - '"UtcTime" :1970-01-01 00:00:00'
-          - '"UtcTime": 1970-01-01 00:00:00'
-          - '"UtcTime" : 1970-01-01 00:00:00'
-      - name: UtcTime
-        dateformat: "%Y-%m-%d %H:%M:%S"
-        pattern: '(UtcTime\s*:\s*)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+        pattern: '("?UtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
         epoch: false
         group: 2
       - name: syslog_timestamp
@@ -506,29 +492,9 @@
         group: 2
       - name: CreationUtcTime
         dateformat: "%Y-%m-%d %H:%M:%S"
-        pattern: '(CreationUtcTime\s*:\s*)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+        pattern: '("?CreationUtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
         epoch: false
         group: 2
-        examples:
-          - 'CreationUtcTime:1970-01-01 00:00:00'
-          - 'CreationUtcTime :1970-01-01 00:00:00'
-          - 'CreationUtcTime: 1970-01-01 00:00:00'
-          - 'CreationUtcTime : 1970-01-01 00:00:00'
-
-      - name: CreationUtcTimeQuotes
-        dateformat: "%Y-%m-%d %H:%M:%S"
-        pattern: '(CreationUtcTime"\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
-        epoch: false
-        group: 2
-        examples:
-        - 'CreationUtcTime":"1970-01-01 00:00:00'
-        - 'CreationUtcTime" :"1970-01-01 00:00:00'
-        - 'CreationUtcTime": "1970-01-01 00:00:00'
-        - 'CreationUtcTime" : "1970-01-01 00:00:00'
-        - 'CreationUtcTime":1970-01-01 00:00:00'
-        - 'CreationUtcTime" :1970-01-01 00:00:00'
-        - 'CreationUtcTime": 1970-01-01 00:00:00'
-        - 'CreationUtcTime" : 1970-01-01 00:00:00'
 
   POWERSHELL:
     api: unstructuredlogentries
@@ -747,7 +713,7 @@
       - name: creation_time
         base_time: true
         dateformat: "%Y-%m-%dT%H:%M:%S"
-        pattern: '("CreationTime":\s*")(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})'
+        pattern: '("CreationTime":")(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})'
         epoch: false
         group: 2
       - name: label_applied
