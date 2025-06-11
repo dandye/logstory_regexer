@@ -104,6 +104,42 @@ NEW_LOG_TYPE:
 - `dateformat`: Python strftime format or `epoch: true` for Unix timestamps
 - `base_time`: Boolean indicating primary timestamp pattern
 
+### Critical Pattern Constraint: No Duplicate Timestamp Matches
+
+**IMPORTANT**: Patterns within a log type must NEVER match the same timestamp text. This is a critical requirement because:
+
+1. **Visualization Integrity**: Duplicate matches cause overlapping highlights that confuse users
+2. **Processing Performance**: Multiple patterns matching the same text wastes computational resources
+3. **Data Accuracy**: Duplicate extraction can lead to incorrect timestamp counting and analysis
+
+#### Common Causes of Duplicate Matches:
+- **Substring matching**: A general pattern like `("?UtcTime"?)` matching within `CreationUtcTime`
+- **Overlapping ranges**: Two patterns with similar but not identical regex expressions
+- **Order-dependent patterns**: Later patterns matching text already captured by earlier ones
+
+#### Prevention Strategies:
+1. **Use word boundaries**: `\b` to prevent substring matches
+2. **Order patterns by specificity**: More specific patterns (e.g., `CreationUtcTime`) before general ones (e.g., `UtcTime`)
+3. **Use negative lookbehind/lookahead**: Prevent matching within other field names
+4. **Test thoroughly**: Always run unit tests to verify no overlapping matches
+
+#### Example Fix for WINDOWS_SYSMON:
+```yaml
+# WRONG - UtcTime matches within CreationUtcTime
+- pattern: '("?UtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+
+# CORRECT - Word boundary prevents substring matching
+- pattern: '(\b"?UtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+```
+
+#### Testing for Duplicates:
+Always include tests like `test_no_duplicate_matches()` to verify patterns don't overlap:
+```python
+def test_no_duplicate_matches(self):
+    """Ensure no single timestamp is matched by multiple patterns."""
+    # Check that timestamp positions don't overlap between different patterns
+```
+
 ## Security Considerations
 
 - File uploads limited to 50MB (`MAX_CONTENT_LENGTH`)
