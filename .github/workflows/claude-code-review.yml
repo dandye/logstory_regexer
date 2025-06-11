@@ -35,7 +35,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          model: claude-3-5-sonnet-20241022
+          model: claude-4-0-sonnet-latest
           trigger_phrase: "@claude"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
