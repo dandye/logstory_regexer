@@ -85,6 +85,11 @@ Regex: ("LabelAppliedDateTime":\s*")(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})
 
 Issue Found: The creation_time pattern expects "CreationTime":" but 
 the log file contains "CreationTime": " (with space after colon).
+
+Fix Needed: Change pattern to:
+pattern: '("CreationTime":\s*")(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})'
+
+This uses \s* to match optional whitespace after the colon.
 ```
 
 This immediately identifies pattern mismatches and suggests fixes before deployment.
