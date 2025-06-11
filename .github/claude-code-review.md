@@ -1,6 +1,6 @@
 # Claude Code Review Configuration
 
-This repository uses Claude Code for automated PR reviews to maintain code quality and catch potential issues early.
+This repository uses Claude Code for automated PR reviews and code assistance via GitHub Actions.
 
 ## Setup
 
@@ -10,37 +10,49 @@ Add the following secrets to your GitHub repository settings:
 
 1. `ANTHROPIC_API_KEY` - Your Anthropic API key for Claude access
 
-### Configuration
+### How It Works
 
-The Claude Code review is configured to focus on:
+The Claude Code action responds to:
+- **Pull Requests** - Automatically triggers on PR creation and updates
+- **@claude mentions** - Comment "@claude" in any PR or Issue to get help
 
-- **Security vulnerabilities** - Identifying potential security issues
-- **Performance issues** - Spotting performance bottlenecks
-- **Code quality and best practices** - Ensuring clean, maintainable code
-- **Python-specific improvements** - Python idioms and best practices
-- **Flask/SocketIO specific concerns** - Framework-specific issues
+### Usage Examples
 
-### Excluded Files
+**Request a code review:**
+```
+@claude please review this PR for security issues and performance problems
+```
 
-The following files/directories are excluded from review:
-- `venv/` - Virtual environment
-- `uploads/` - Upload directory
-- `*.png` - Image files
-- `*.log` - Log files
+**Ask for help with implementation:**
+```
+@claude can you help implement error handling for the file upload feature?
+```
+
+**General questions:**
+```
+@claude explain how the regex pattern matching works in this code
+```
+
+## Configuration
+
+The workflow is configured with:
+- **Model**: Claude 3.5 Sonnet for high-quality analysis
+- **Trigger**: "@claude" mentions in comments
+- **Permissions**: Read code, write to PRs and issues
+- **Environment**: Python 3.12 with project dependencies
 
 ## Customization
 
-To modify the review configuration, edit `.github/workflows/claude-code-review.yml`:
+To modify the configuration, edit `.github/workflows/claude-code-review.yml`:
 
-- Change `review-level` to `basic` or `comprehensive`
-- Modify `focus-areas` to add or remove review criteria
-- Update `exclude-files` to change which files are ignored
-- Adjust the `model` if you want to use a different Claude model
+- Change `model` to use a different Claude model
+- Modify `trigger_phrase` to use a different activation phrase
+- Add additional workflow steps for specific project needs
 
 ## Manual Reviews
 
-You can also request manual Claude Code reviews by:
+You can also use Claude Code directly:
 
-1. Installing Claude Code CLI: `pip install claude-code`
-2. Running: `claude-code review <file-or-directory>`
-3. Or using the web interface at [claude.ai/code](https://claude.ai/code)
+1. Install Claude Code CLI: Follow instructions at [claude.ai/code](https://claude.ai/code)
+2. Run terminal commands: `claude-code review <file>`
+3. Use VS Code or JetBrains extensions for IDE integration

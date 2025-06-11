@@ -3,6 +3,8 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
 
 jobs:
   claude-review:
@@ -29,22 +31,11 @@ jobs:
           pip install -r requirements.txt
       
       - name: Run Claude Code Review
-        uses: anthropics/claude-code-review-action@v1
+        uses: anthropics/claude-code-action@beta
         with:
-          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           model: claude-3-5-sonnet-20241022
-          review-level: detailed
-          focus-areas: |
-            - Security vulnerabilities
-            - Performance issues
-            - Code quality and best practices
-            - Python-specific improvements
-            - Flask/SocketIO specific concerns
-          exclude-files: |
-            - venv/
-            - uploads/
-            - *.png
-            - *.log
+          trigger_phrase: "@claude"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
