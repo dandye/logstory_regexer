@@ -461,10 +461,15 @@
   WINDOWS_SYSMON:
     api: unstructuredlogentries
     timestamps:
+      - name: CreationUtcTime
+        dateformat: "%Y-%m-%d %H:%M:%S"
+        pattern: '("?CreationUtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+        epoch: false
+        group: 2
       - name: UtcTime
         base_time: true
         dateformat: "%Y-%m-%d %H:%M:%S"
-        pattern: '("?UtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+        pattern: '(\b"?UtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
         epoch: false
         group: 2
       - name: syslog_timestamp
@@ -473,7 +478,7 @@
         epoch: false
         group: 2
       - name: EventTime
-        pattern: ("EventTime":)(\d+)(,)
+        pattern: ("EventTime":\s*)(\d+)(\s*,)
         epoch: true
         group: 2
       - name: EventTimeUTC
@@ -482,17 +487,12 @@
         epoch: false
         group: 2
       - name: EventReceivedTime
-        pattern: ("EventReceivedTime":)(\d+)(,)
+        pattern: ("EventReceivedTime":\s*)(\d+)(\s*,)
         epoch: true
         group: 2
       - name: EventReceivedTimeUTC
         dateformat: "%Y-%m-%d %H:%M:%S"
         pattern: '("EventReceivedTime"\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
-        epoch: false
-        group: 2
-      - name: CreationUtcTime
-        dateformat: "%Y-%m-%d %H:%M:%S"
-        pattern: '("?CreationUtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
         epoch: false
         group: 2
 
