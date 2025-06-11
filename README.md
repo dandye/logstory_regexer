@@ -53,6 +53,43 @@ Regex patterns are stored in `logtypes_events_timestamps.yaml`. Each log type co
 - `group`: Which capture group contains the timestamp
 - `dateformat` or `epoch`: Time format information
 
+### Important: Avoid Duplicate Timestamp Matches
+
+When creating patterns, ensure that **no two patterns match the same timestamp text**. This prevents:
+- Overlapping visual highlights that confuse users
+- Performance issues from redundant processing
+- Incorrect timestamp analysis results
+
+**Example Problem:**
+```yaml
+# BAD - These patterns will both match "UtcTime" in "CreationUtcTime"
+- pattern: '("?UtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+- pattern: '("?CreationUtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+
+# GOOD - Word boundary prevents substring matching
+- pattern: '(\b"?UtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+- pattern: '("?CreationUtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+```
+
+Order patterns from most specific to least specific for best results.
+
+### Validate Group and Dateformat Alignment
+
+Ensure the `group` field correctly identifies which capture group contains the timestamp, and that the timestamp can be parsed with the specified `dateformat`:
+
+```bash
+# Run comprehensive validation on all log types
+python test_pattern_validation.py
+
+# Run specific tests for WINDOWS_SYSMON
+python test_windows_sysmon_timestamps.py
+```
+
+**Common Issues:**
+- Wrong group number (e.g., group 1 contains prefix, not timestamp)
+- Format mismatch (extracted text doesn't match dateformat)
+- Invalid epoch timestamps (non-numeric or unrealistic values)
+
 ## Claude Code Integration
 
 This project includes custom Claude Code commands (in `.claude/commands/`) for enhanced development workflow:

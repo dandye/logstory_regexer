@@ -104,6 +104,89 @@ NEW_LOG_TYPE:
 - `dateformat`: Python strftime format or `epoch: true` for Unix timestamps
 - `base_time`: Boolean indicating primary timestamp pattern
 
+### Critical Pattern Constraint: No Duplicate Timestamp Matches
+
+**IMPORTANT**: Patterns within a log type must NEVER match the same timestamp text. This is a critical requirement because:
+
+1. **Visualization Integrity**: Duplicate matches cause overlapping highlights that confuse users
+2. **Processing Performance**: Multiple patterns matching the same text wastes computational resources
+3. **Data Accuracy**: Duplicate extraction can lead to incorrect timestamp counting and analysis
+
+#### Common Causes of Duplicate Matches:
+- **Substring matching**: A general pattern like `("?UtcTime"?)` matching within `CreationUtcTime`
+- **Overlapping ranges**: Two patterns with similar but not identical regex expressions
+- **Order-dependent patterns**: Later patterns matching text already captured by earlier ones
+
+#### Prevention Strategies:
+1. **Use word boundaries**: `\b` to prevent substring matches
+2. **Order patterns by specificity**: More specific patterns (e.g., `CreationUtcTime`) before general ones (e.g., `UtcTime`)
+3. **Use negative lookbehind/lookahead**: Prevent matching within other field names
+4. **Test thoroughly**: Always run unit tests to verify no overlapping matches
+
+#### Example Fix for WINDOWS_SYSMON:
+```yaml
+# WRONG - UtcTime matches within CreationUtcTime
+- pattern: '("?UtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+
+# CORRECT - Word boundary prevents substring matching
+- pattern: '(\b"?UtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+```
+
+#### Testing for Duplicates:
+Always include tests like `test_no_duplicate_matches()` to verify patterns don't overlap:
+```python
+def test_no_duplicate_matches(self):
+    """Ensure no single timestamp is matched by multiple patterns."""
+    # Check that timestamp positions don't overlap between different patterns
+```
+
+### Critical Validation: Group and Dateformat Alignment
+
+**IMPORTANT**: The `group` field must correctly identify which capture group contains the timestamp, and that timestamp must be parseable with the specified `dateformat`.
+
+#### Common Group/Dateformat Issues:
+- **Wrong group number**: Group 2 specified but timestamp is in group 1
+- **Format mismatch**: Pattern extracts "2024-01-15 09:30:45" but dateformat is "%Y-%m-%dT%H:%M:%S"
+- **Invalid epoch**: Epoch pattern extracts non-numeric text
+- **Missing components**: Syslog pattern uses "%b %d %H:%M:%S" (no year) correctly
+
+#### Validation Tests:
+```python
+def test_group_extracts_parseable_timestamp(self):
+    """Verify extracted timestamps can be parsed with specified dateformat."""
+    timestamp_text = match.group(group_num)
+    parsed_datetime = datetime.strptime(timestamp_text, dateformat)
+    # Verify parsed datetime is reasonable
+
+def test_epoch_patterns_extract_valid_timestamps(self):
+    """Verify epoch patterns extract valid Unix timestamps."""
+    epoch_timestamp = int(timestamp_text)
+    # Verify timestamp is in reasonable range (1970-2100)
+```
+
+#### Example Issues and Fixes:
+```yaml
+# WRONG - Group 1 contains prefix, not timestamp
+pattern: '("EventTime":)(\d+)(,)'
+group: 1  # This captures "EventTime": not the timestamp!
+
+# CORRECT - Group 2 contains the actual timestamp
+pattern: '("EventTime":)(\d+)(,)'
+group: 2  # This captures the timestamp digits
+```
+
+#### Comprehensive Validation:
+Use `test_pattern_validation.py` to validate all log types:
+```bash
+python test_pattern_validation.py
+```
+This validates all 857 patterns across 46 log types for:
+- Pattern syntax correctness
+- Group/dateformat alignment  
+- Required field presence
+- Base time pattern existence
+- Pattern name uniqueness
+
 ## Security Considerations
 
 - File uploads limited to 50MB (`MAX_CONTENT_LENGTH`)

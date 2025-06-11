@@ -12,6 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# ============================================================================
+# LogStory Regex Visualizer - Timestamp Pattern Configuration
+# ============================================================================
+#
+# This file defines regex patterns for extracting timestamps from different 
+# log types. Each log type contains a list of timestamp patterns that will
+# be applied sequentially to each log line.
+#
+# CRITICAL CONSTRAINT: NO DUPLICATE MATCHES
+# ==========================================
+# Patterns within a log type must NEVER match the same timestamp text.
+# This prevents overlapping highlights and ensures accurate visualization.
+#
+# Common causes of duplicate matches:
+# - Substring matching: "UtcTime" pattern matching within "CreationUtcTime"
+# - Similar regex expressions with overlapping ranges
+# - Insufficient word boundaries or specificity
+#
+# Prevention strategies:
+# 1. Order patterns from most specific to least specific
+# 2. Use word boundaries (\b) to prevent substring matches
+# 3. Use negative lookbehind/lookahead when needed
+# 4. Test patterns thoroughly with unit tests
+#
+# Example:
+# WRONG: ("?UtcTime"?) matches within CreationUtcTime
+# RIGHT: (\b"?UtcTime"?) uses word boundary to prevent substring matching
+#
+# Always run tests to verify no overlapping timestamp matches!
+# ============================================================================
+
 ---
   AUDITD:
     api: unstructuredlogentries
@@ -461,24 +492,15 @@
   WINDOWS_SYSMON:
     api: unstructuredlogentries
     timestamps:
-      - name: UtcTimeQuotes
-        base_time: true
+      - name: CreationUtcTime
         dateformat: "%Y-%m-%d %H:%M:%S"
-        pattern: '("UtcTime"\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+        pattern: '("?CreationUtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
         epoch: false
         group: 2
-        examples:
-          - '"UtcTime":"1970-01-01 00:00:00'
-          - '"UtcTime" :"1970-01-01 00:00:00'
-          - '"UtcTime": "1970-01-01 00:00:00'
-          - '"UtcTime" : "1970-01-01 00:00:00'
-          - '"UtcTime":1970-01-01 00:00:00'
-          - '"UtcTime" :1970-01-01 00:00:00'
-          - '"UtcTime": 1970-01-01 00:00:00'
-          - '"UtcTime" : 1970-01-01 00:00:00'
       - name: UtcTime
+        base_time: true
         dateformat: "%Y-%m-%d %H:%M:%S"
-        pattern: '(UtcTime\s*:\s*)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+        pattern: '(\b"?UtcTime"?\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
         epoch: false
         group: 2
       - name: syslog_timestamp
@@ -487,7 +509,7 @@
         epoch: false
         group: 2
       - name: EventTime
-        pattern: ("EventTime":)(\d+)(,)
+        pattern: ("EventTime":\s*)(\d+)(\s*,)
         epoch: true
         group: 2
       - name: EventTimeUTC
@@ -496,7 +518,7 @@
         epoch: false
         group: 2
       - name: EventReceivedTime
-        pattern: ("EventReceivedTime":)(\d+)(,)
+        pattern: ("EventReceivedTime":\s*)(\d+)(\s*,)
         epoch: true
         group: 2
       - name: EventReceivedTimeUTC
@@ -504,31 +526,6 @@
         pattern: '("EventReceivedTime"\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
         epoch: false
         group: 2
-      - name: CreationUtcTime
-        dateformat: "%Y-%m-%d %H:%M:%S"
-        pattern: '(CreationUtcTime\s*:\s*)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
-        epoch: false
-        group: 2
-        examples:
-          - 'CreationUtcTime:1970-01-01 00:00:00'
-          - 'CreationUtcTime :1970-01-01 00:00:00'
-          - 'CreationUtcTime: 1970-01-01 00:00:00'
-          - 'CreationUtcTime : 1970-01-01 00:00:00'
-
-      - name: CreationUtcTimeQuotes
-        dateformat: "%Y-%m-%d %H:%M:%S"
-        pattern: '(CreationUtcTime"\s*:\s*"?)(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
-        epoch: false
-        group: 2
-        examples:
-        - 'CreationUtcTime":"1970-01-01 00:00:00'
-        - 'CreationUtcTime" :"1970-01-01 00:00:00'
-        - 'CreationUtcTime": "1970-01-01 00:00:00'
-        - 'CreationUtcTime" : "1970-01-01 00:00:00'
-        - 'CreationUtcTime":1970-01-01 00:00:00'
-        - 'CreationUtcTime" :1970-01-01 00:00:00'
-        - 'CreationUtcTime": 1970-01-01 00:00:00'
-        - 'CreationUtcTime" : 1970-01-01 00:00:00'
 
   POWERSHELL:
     api: unstructuredlogentries
@@ -747,7 +744,7 @@
       - name: creation_time
         base_time: true
         dateformat: "%Y-%m-%dT%H:%M:%S"
-        pattern: '("CreationTime":\s*")(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})'
+        pattern: '("CreationTime":")(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})'
         epoch: false
         group: 2
       - name: label_applied
