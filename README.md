@@ -73,6 +73,23 @@ When creating patterns, ensure that **no two patterns match the same timestamp t
 
 Order patterns from most specific to least specific for best results.
 
+### Validate Group and Dateformat Alignment
+
+Ensure the `group` field correctly identifies which capture group contains the timestamp, and that the timestamp can be parsed with the specified `dateformat`:
+
+```bash
+# Run comprehensive validation on all log types
+python test_pattern_validation.py
+
+# Run specific tests for WINDOWS_SYSMON
+python test_windows_sysmon_timestamps.py
+```
+
+**Common Issues:**
+- Wrong group number (e.g., group 1 contains prefix, not timestamp)
+- Format mismatch (extracted text doesn't match dateformat)
+- Invalid epoch timestamps (non-numeric or unrealistic values)
+
 ## Claude Code Integration
 
 This project includes custom Claude Code commands (in `.claude/commands/`) for enhanced development workflow:

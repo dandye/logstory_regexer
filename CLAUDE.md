@@ -140,6 +140,53 @@ def test_no_duplicate_matches(self):
     # Check that timestamp positions don't overlap between different patterns
 ```
 
+### Critical Validation: Group and Dateformat Alignment
+
+**IMPORTANT**: The `group` field must correctly identify which capture group contains the timestamp, and that timestamp must be parseable with the specified `dateformat`.
+
+#### Common Group/Dateformat Issues:
+- **Wrong group number**: Group 2 specified but timestamp is in group 1
+- **Format mismatch**: Pattern extracts "2024-01-15 09:30:45" but dateformat is "%Y-%m-%dT%H:%M:%S"
+- **Invalid epoch**: Epoch pattern extracts non-numeric text
+- **Missing components**: Syslog pattern uses "%b %d %H:%M:%S" (no year) correctly
+
+#### Validation Tests:
+```python
+def test_group_extracts_parseable_timestamp(self):
+    """Verify extracted timestamps can be parsed with specified dateformat."""
+    timestamp_text = match.group(group_num)
+    parsed_datetime = datetime.strptime(timestamp_text, dateformat)
+    # Verify parsed datetime is reasonable
+
+def test_epoch_patterns_extract_valid_timestamps(self):
+    """Verify epoch patterns extract valid Unix timestamps."""
+    epoch_timestamp = int(timestamp_text)
+    # Verify timestamp is in reasonable range (1970-2100)
+```
+
+#### Example Issues and Fixes:
+```yaml
+# WRONG - Group 1 contains prefix, not timestamp
+pattern: '("EventTime":)(\d+)(,)'
+group: 1  # This captures "EventTime": not the timestamp!
+
+# CORRECT - Group 2 contains the actual timestamp
+pattern: '("EventTime":)(\d+)(,)'
+group: 2  # This captures the timestamp digits
+```
+
+#### Comprehensive Validation:
+Use `test_pattern_validation.py` to validate all log types:
+```bash
+python test_pattern_validation.py
+```
+This validates all 857 patterns across 46 log types for:
+- Pattern syntax correctness
+- Group/dateformat alignment  
+- Required field presence
+- Base time pattern existence
+- Pattern name uniqueness
+
 ## Security Considerations
 
 - File uploads limited to 50MB (`MAX_CONTENT_LENGTH`)
