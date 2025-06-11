@@ -2,6 +2,8 @@
 
 A web application for visualizing regex pattern matches in log files with real-time editing and color-coded highlighting.
 
+![LogStory Regex Visualizer Screenshot](logstory_regexer_screenshot.png)
+
 ## Features
 
 - Load regex patterns from YAML configuration
