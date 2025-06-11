@@ -13,29 +13,29 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
+
       - name: Run Claude Code Review
         uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          model: claude-4-0-sonnet-latest
+          model: claude-sonnet-4-latest
           trigger_phrase: "@claude"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
