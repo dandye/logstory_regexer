@@ -111,7 +111,7 @@ def apply_regex_patterns(text, patterns):
 def index():
     """Main page"""
     config = load_yaml_config()
-    log_types = list(config.keys())
+    log_types = sorted(config.keys())
     return render_template('index.html', log_types=log_types)
 
 @app.route('/api/log-content/<log_type>')
