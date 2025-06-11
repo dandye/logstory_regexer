@@ -52,3 +52,50 @@ Regex patterns are stored in `logtypes_events_timestamps.yaml`. Each log type co
 - `pattern`: Regular expression pattern
 - `group`: Which capture group contains the timestamp
 - `dateformat` or `epoch`: Time format information
+
+## Claude Code Integration
+
+This project includes custom Claude Code commands (in `.claude/commands/`) for enhanced development workflow:
+
+### `/test-patterns` - Validate Regex Patterns
+
+Test regex patterns against sample log data to catch issues early:
+
+```
+/test-patterns OFFICE_365
+```
+
+**Example Output:**
+```
+Testing Updated OFFICE_365 Patterns Against Log File
+============================================================
+Log file has 20 lines
+
+Testing pattern: creation_time
+Regex: ("CreationTime":")(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})
+  Total matches: 0
+  ⚠️  No matches found - pattern may need adjustment
+
+Testing pattern: label_applied  
+Regex: ("LabelAppliedDateTime":\s*")(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})
+  Line 3: Found "2024-01-15T09:32:05"
+  Line 8: Found "2024-01-15T09:37:25" 
+  Line 16: Found "2024-01-15T09:45:35"
+  Total matches: 3
+
+Issue Found: The creation_time pattern expects "CreationTime":" but 
+the log file contains "CreationTime": " (with space after colon).
+
+Fix Needed: Change pattern to:
+pattern: '("CreationTime":\s*")(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})'
+
+This uses \s* to match optional whitespace after the colon.
+```
+
+This immediately identifies pattern mismatches and suggests fixes before deployment.
+
+### Other Available Commands:
+- `/add-log-type [name]` - Add support for new log formats
+- `/analyze-logs [file]` - Analyze unknown log files for timestamp patterns  
+- `/run-demo` - Guided walkthrough of the application
+- `/debug-patterns [type] [pattern]` - Debug specific regex pattern issues
