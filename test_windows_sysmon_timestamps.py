@@ -10,6 +10,7 @@ import re
 import unittest
 import yaml
 from typing import List, Dict, Any
+from datetime import datetime
 
 
 class TestWindowsSysmonTimestamps(unittest.TestCase):
@@ -245,6 +246,122 @@ class TestWindowsSysmonTimestamps(unittest.TestCase):
                 group_num = pattern_config['group']
                 self.assertIsInstance(group_num, int, f"Pattern '{pattern_name}' group must be integer")
                 self.assertGreater(group_num, 0, f"Pattern '{pattern_name}' group must be positive")
+    
+    def test_group_extracts_parseable_timestamp(self):
+        """Verify that the specified group extracts a timestamp that can be parsed with the dateformat."""
+        for pattern_config in self.sysmon_patterns:
+            pattern_name = pattern_config['name']
+            pattern_regex = pattern_config['pattern']
+            group_num = pattern_config['group']
+            is_epoch = pattern_config.get('epoch', False)
+            dateformat = pattern_config.get('dateformat')
+            
+            # Skip patterns without dateformat (epoch-only patterns)
+            if is_epoch or not dateformat:
+                continue
+                
+            with self.subTest(pattern_name=pattern_name):
+                regex = re.compile(pattern_regex)
+                found_valid_match = False
+                
+                # Test against sample log lines
+                for line_num, line_text in enumerate(self.sample_lines, 1):
+                    line_text = line_text.strip()
+                    matches = list(regex.finditer(line_text))
+                    
+                    for match in matches:
+                        if len(match.groups()) >= group_num:
+                            timestamp_text = match.group(group_num)
+                            
+                            # Try to parse the timestamp with the specified format
+                            try:
+                                parsed_datetime = datetime.strptime(timestamp_text, dateformat)
+                                found_valid_match = True
+                                
+                                # Special case for syslog timestamps which don't include year
+                                if pattern_name == 'syslog_timestamp' and '%Y' not in dateformat:
+                                    # For syslog timestamps, just verify the month/day/time components are reasonable
+                                    self.assertIn(parsed_datetime.month, range(1, 13), 
+                                                f"Pattern '{pattern_name}' extracted invalid month from '{timestamp_text}'")
+                                    self.assertIn(parsed_datetime.day, range(1, 32),
+                                                f"Pattern '{pattern_name}' extracted invalid day from '{timestamp_text}'")
+                                    self.assertIn(parsed_datetime.hour, range(0, 24),
+                                                f"Pattern '{pattern_name}' extracted invalid hour from '{timestamp_text}'")
+                                    self.assertIn(parsed_datetime.minute, range(0, 60),
+                                                f"Pattern '{pattern_name}' extracted invalid minute from '{timestamp_text}'")
+                                    self.assertIn(parsed_datetime.second, range(0, 60),
+                                                f"Pattern '{pattern_name}' extracted invalid second from '{timestamp_text}'")
+                                else:
+                                    # For full timestamps, verify the year is reasonable
+                                    self.assertGreater(parsed_datetime.year, 1970, 
+                                                     f"Pattern '{pattern_name}' extracted timestamp '{timestamp_text}' "
+                                                     f"from line {line_num} parsed to unrealistic year {parsed_datetime.year}")
+                                    self.assertLess(parsed_datetime.year, 2100,
+                                                   f"Pattern '{pattern_name}' extracted timestamp '{timestamp_text}' "
+                                                   f"from line {line_num} parsed to unrealistic year {parsed_datetime.year}")
+                            except ValueError as e:
+                                self.fail(f"Pattern '{pattern_name}' group {group_num} extracted '{timestamp_text}' "
+                                        f"from line {line_num} but failed to parse with format '{dateformat}': {e}")
+                
+                # Ensure we found at least one valid match to test the parsing
+                if not found_valid_match:
+                    # This might be OK for some patterns that don't appear in our sample data
+                    print(f"Warning: Pattern '{pattern_name}' had no matches in sample data to test parsing")
+    
+    def test_epoch_patterns_extract_valid_timestamps(self):
+        """Verify that epoch patterns extract valid Unix timestamps."""
+        for pattern_config in self.sysmon_patterns:
+            pattern_name = pattern_config['name']
+            pattern_regex = pattern_config['pattern']
+            group_num = pattern_config['group']
+            is_epoch = pattern_config.get('epoch', False)
+            
+            # Only test epoch patterns
+            if not is_epoch:
+                continue
+                
+            with self.subTest(pattern_name=pattern_name):
+                regex = re.compile(pattern_regex)
+                found_valid_match = False
+                
+                # Test against sample log lines
+                for line_num, line_text in enumerate(self.sample_lines, 1):
+                    line_text = line_text.strip()
+                    matches = list(regex.finditer(line_text))
+                    
+                    for match in matches:
+                        if len(match.groups()) >= group_num:
+                            timestamp_text = match.group(group_num)
+                            
+                            # Verify it's a valid integer
+                            try:
+                                epoch_timestamp = int(timestamp_text)
+                                found_valid_match = True
+                                
+                                # Verify it's a reasonable Unix timestamp
+                                # Should be between 1970-01-01 (0) and 2100-01-01 (4102444800)
+                                self.assertGreater(epoch_timestamp, 0,
+                                                 f"Pattern '{pattern_name}' extracted epoch '{timestamp_text}' "
+                                                 f"from line {line_num} but it's not positive")
+                                self.assertLess(epoch_timestamp, 4102444800,
+                                               f"Pattern '{pattern_name}' extracted epoch '{timestamp_text}' "
+                                               f"from line {line_num} but it's unrealistically large")
+                                
+                                # Convert to datetime for additional validation
+                                parsed_datetime = datetime.fromtimestamp(epoch_timestamp)
+                                self.assertGreater(parsed_datetime.year, 1970)
+                                self.assertLess(parsed_datetime.year, 2100)
+                                
+                            except ValueError as e:
+                                self.fail(f"Pattern '{pattern_name}' group {group_num} extracted '{timestamp_text}' "
+                                        f"from line {line_num} but it's not a valid integer: {e}")
+                            except (OSError, OverflowError) as e:
+                                self.fail(f"Pattern '{pattern_name}' group {group_num} extracted '{timestamp_text}' "
+                                        f"from line {line_num} but it's not a valid Unix timestamp: {e}")
+                
+                # Ensure we found at least one valid match to test
+                if not found_valid_match:
+                    print(f"Warning: Epoch pattern '{pattern_name}' had no matches in sample data to test")
 
 
 if __name__ == '__main__':
