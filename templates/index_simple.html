@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogStory Regex Visualizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LogStory Regex Visualizer</h1>
+            <p>Visualize regex patterns in log files with real-time editing</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="log-type">Log Type:</label>
+                <select id="log-type">
+                    {% for log_type in log_types %}
+                    <option value="{{ log_type }}">{{ log_type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="log-file">Log File:</label>
+                <input type="file" id="log-file" accept=".log,.txt">
+                <button id="upload-file" class="btn btn-secondary">Upload</button>
+            </div>
+            
+            <div class="control-group">
+                <label for="line-limit">Lines to Analyze:</label>
+                <input type="number" id="line-limit" value="100" min="1" max="10000">
+            </div>
+            
+            <button id="load-patterns" class="btn btn-primary">Load Patterns</button>
+            <button id="analyze" class="btn btn-success">Analyze</button>
+        </div>
+        
+        <div id="file-status" class="file-status"></div>
+
+        <div class="main-content">
+            <div class="patterns-section">
+                <h2>Regex Patterns</h2>
+                <div id="patterns-list"></div>
+                <button id="add-pattern" class="btn btn-secondary">Add Pattern</button>
+            </div>
+
+            <div class="results-section">
+                <h2>Log Analysis Results</h2>
+                <div class="stats" id="stats"></div>
+                <div id="results"></div>
+            </div>
+        </div>
+
+        <div class="legend" id="legend">
+            <h3>Pattern Colors</h3>
+            <div id="legend-items"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
