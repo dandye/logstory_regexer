@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - LogStory Regex Visualizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .login-title {
+            margin-bottom: 2rem;
+            color: #333;
+        }
+        
+        #g_id_onload {
+            margin: 0 auto;
+        }
+        
+        .g_id_signin {
+            margin: 0 auto;
+            display: inline-block;
+        }
+        
+        .info-text {
+            margin-top: 2rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1 class="login-title">LogStory Regex Visualizer</h1>
+        <p>Please sign in to access your log files</p>
+        
+        <!-- Google Sign-In Button -->
+        {% if config.GOOGLE_CLIENT_ID and config.GOOGLE_CLIENT_ID != 'not-set-for-local-testing' %}
+        <div id="g_id_onload"
+             data-client_id="{{ config.GOOGLE_CLIENT_ID }}"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="sign_in_with"
+             data-shape="rectangular"
+             data-logo_alignment="left">
+        </div>
+        {% else %}
+        <div style="padding: 20px; background: #f0f0f0; border-radius: 4px; margin: 20px 0;">
+            <p><strong>Local Testing Mode</strong></p>
+            <p>Google Sign-In not configured.</p>
+            <a href="/test-login" class="btn" style="display: inline-block; padding: 10px 20px; background: #4285f4; color: white; text-decoration: none; border-radius: 4px; margin-top: 10px;">Use Test Login</a>
+        </div>
+        {% endif %}
+        
+        <p class="info-text">
+            Your files are stored securely and only accessible by you.
+        </p>
+    </div>
+
+    <!-- Google Sign-In Script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        function handleCredentialResponse(response) {
+            // Send the ID token to your server
+            fetch('/auth/google', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    credential: response.credential
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect to main page
+                    window.location.href = data.redirect || '/';
+                } else {
+                    alert('Login failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Login failed. Please try again.');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -10,8 +10,25 @@
 <body>
     <div class="container">
         <header>
-            <h1>LogStory Regex Visualizer</h1>
-            <p>Visualize regex patterns in log files with real-time editing</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>LogStory Regex Visualizer</h1>
+                    <p>Visualize regex patterns in log files with real-time editing</p>
+                </div>
+                {% if user %}
+                <div style="text-align: right;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        {% if user.picture %}
+                        <img src="{{ user.picture }}" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%;">
+                        {% endif %}
+                        <div>
+                            <div style="font-weight: bold;">{{ user.name or user.email }}</div>
+                            <a href="/logout" style="font-size: 0.9em; color: #666;">Logout</a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
         </header>
 
         <div class="controls">
