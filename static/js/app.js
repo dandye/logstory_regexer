@@ -79,12 +79,16 @@ function renderPatterns() {
         patternColors[index] = color;
         
         const patternDiv = document.createElement('div');
-        patternDiv.className = 'pattern-item';
+        patternDiv.className = pattern.base_time ? 'pattern-item base-time-pattern' : 'pattern-item';
+        
+        const baseTimeBadge = pattern.base_time ? '<span class="base-time-badge">BASE TIME</span>' : '';
+        
         patternDiv.innerHTML = `
             <div class="pattern-header">
                 <span>
                     <span class="pattern-color" style="background-color: ${color}"></span>
                     <strong>${pattern.name || `Pattern ${index + 1}`}</strong>
+                    ${baseTimeBadge}
                 </span>
                 <div class="pattern-controls">
                     <button class="btn btn-danger" onclick="removePattern(${index})">Remove</button>
