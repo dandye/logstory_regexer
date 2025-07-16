@@ -131,7 +131,15 @@ def get_patterns(log_type):
         return jsonify({'error': 'Log type not found'}), 404
     
     timestamps = config[log_type].get('timestamps', [])
-    return jsonify({'patterns': timestamps})
+    
+    # Sort patterns so base_time appears first
+    def sort_key(pattern):
+        # base_time patterns get priority 0, others get priority 1
+        return (0 if pattern.get('base_time') else 1, pattern.get('name', ''))
+    
+    sorted_timestamps = sorted(timestamps, key=sort_key)
+    
+    return jsonify({'patterns': sorted_timestamps})
 
 @app.route('/api/upload-log', methods=['POST'])
 def upload_log():

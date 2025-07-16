@@ -171,6 +171,12 @@ input[type="file"] {
     border: 1px solid #e9ecef;
 }
 
+.base-time-pattern {
+    border: 2px solid #3498db;
+    background-color: #ebf3fd;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.15);
+}
+
 .pattern-header {
     display: flex;
     justify-content: space-between;
@@ -213,6 +219,19 @@ input[type="file"] {
 .pattern-input.error {
     border-color: #e74c3c;
     background-color: #fee;
+}
+
+.base-time-badge {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .stats {
